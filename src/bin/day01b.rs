@@ -5,10 +5,9 @@ use aoc2018::files::read_from_file;
 
 pub fn main() {
     let input = read_from_file("input/day01a.txt");
-    let mut freqs: Vec<i64> = input.split('\n')
-                           .map(|x| x.parse::<i64>().unwrap_or_default())
-                           .collect();
-    freqs.pop();
+    let freqs: Vec<i64> = input.lines()
+                               .map(|x| x.parse::<i64>().unwrap_or_default())
+                               .collect();
     let mut found_freqs = HashSet::new();
     let mut current_freq: i64 = 0;
     loop {
