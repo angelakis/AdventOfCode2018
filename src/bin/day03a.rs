@@ -2,55 +2,35 @@ extern crate aoc2018;
 
 use aoc2018::files::read_from_file;
 
-pub struct Claim {
-    id: usize,
-    from_left: usize,
-    from_top: usize,
-    wide: usize,
-    tall: usize
-}
-
-impl Claim {
-    pub fn new(claim_line: &str) -> Claim {
-        let mut numbers = Vec::new();
-        let mut number = Vec::new();
-        for ch in claim_line.chars() {
-            match ch {
-                '#' | '@' => {},
-                ' ' | ',' | ':' | 'x' => {
-                    if !number.is_empty() {
-                        let cloned_number = number.clone();
-                        number.clear();
-                        let num: usize = cloned_number.into_iter()
-                                               .collect::<String>()
-                                               .parse()
-                                               .unwrap();
-                        numbers.push(num);
-                    }
-                },
-                _ => number.push(ch),
-            }
-        }
-        let cloned_number = number.clone();
-        number.clear();
-        let num: usize = cloned_number.into_iter()
-                               .collect::<String>()
-                               .parse()
-                               .unwrap();
-        Claim{
-            id: numbers[0],
-            from_left: numbers[1],
-            from_top: numbers[2],
-            wide: numbers[3],
-            tall: num}
-    }
+pub fn extract_corners(claim: &str) -> ((usize, usize), (usize, usize)) {
+    let words: Vec<&str> = claim.split(':').collect();
+    let first_two: Vec<usize> = words[0].split(' ').collect::<Vec<&str>>()[2]
+                                       .split(',')
+                                       .map(|x| x.parse().unwrap()).collect();
+    let second_two: Vec<usize> = words[1].trim().split('x')
+                                         .map(|x| x.parse().unwrap()).collect();
+    ((first_two[0], first_two[1]),
+     (first_two[0] + second_two[0], first_two[1] + second_two[1]))
 }
 
 pub fn main() {
     let input = read_from_file("input/day03a.txt");
-    let mut claims = Vec::new();
+    let mut matrix = vec!(vec!(0; 1000); 1000);
+    let mut overlapping = 0;
     for claim_line in input.lines() {
-        claims.push(Claim::new(claim_line));
+        let ((x1, y1), (x2, y2)) = extract_corners(claim_line);
+        for x in x1..x2 {
+            for y in y1..y2 {
+                match matrix[x][y] {
+                    0 => matrix[x][y] += 1,
+                    1 => {
+                        matrix[x][y] += 1;
+                        overlapping += 1;
+                    },
+                    _ => {},
+                }
+            }
+        }
     }
-    println!("Overlapping square inches = {:?}", claims[3].from_left);
+    println!("Overlapping square inches = {}", overlapping);
 }
