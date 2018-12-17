@@ -59,19 +59,15 @@ pub fn main() {
             last = points_clone[i];
         }
         if possible_moments.get(&close_points.len()) == None {
-            println!("Moment {}: Close Points {}", moment, close_points.len());
-            possible_moments.insert(close_points.len(), close_points);
+            possible_moments.insert(close_points.len(), (close_points, moment));
         }
     }
-    possible_moments.remove(&0);
-    for arr in possible_moments.values() {
-        if arr.len() < 200 {
+    for (arr, moment) in possible_moments.values() {
+        if arr.len() < points.len() / 2  {
             continue;
         }
-        println!("Length: {} - A possible message:", arr.len());
         let mut arr = arr.clone();
         let arrangement: Vec<(isize, isize)> = arr.iter().map(|&(x, y)| (y, x)).collect();
-        //let arrangement: Vec<(isize, isize)> = arr.iter().map(|&(x, y)| (y, x)).collect();
         let mut minx = arrangement[0].0;
         let mut maxx = arrangement[0].0;
         let mut miny = arrangement[0].1;
@@ -84,15 +80,13 @@ pub fn main() {
             maxy = cmp::max(maxy, p.1);
             points.insert(*p, true);
         }
-        //println!("{:?}", arr);
-        if maxy - miny > 1000 {
-            println!("Too wide, aborting ({}, {})", miny, maxy);
+        if maxy - miny > 500 {
             continue;
         }
-        if maxx - minx > 100 {
-            println!("Too long, aborting ({}, {})", minx, maxx);
+        if maxx - minx > 20 {
             continue;
         }
+        println!("Moment: {} - A possible message:", moment);
         for x in minx..maxx + 1 {
             for y in miny..maxy + 1 {
                 if points.get(&(x, y)) == None {
