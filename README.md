@@ -6,4 +6,4 @@ My solutions to AoC 2018, implemented in Rust.
 ```
 $ cargo run --bin dayXXY
 ```
-where XX = [00..30], Y = [ab]
+where XX = [00..14], Y = [ab]
