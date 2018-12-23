@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum NextTurn {
     Left,
     Straight,
@@ -21,7 +22,7 @@ impl NextTurn {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 enum Direction {
     Up,
     Down,
@@ -79,25 +80,30 @@ pub fn main() {
             }
         }
     }
-    for _ in 0..100 {
+    loop {
+        let mut positions = HashMap::new();
+        carts.sort_by(|(xy1, ..), (xy2, ..)| xy1.cmp(xy2));
         let temp_carts = carts.clone();
-        let mut new_positions = HashMap::new();
+        for i in 0..temp_carts.len() {
+            positions.insert(carts[i].0, i);
+        }
         let mut to_be_removed = vec!();
         for (cart_ind, cart) in temp_carts.iter().enumerate() {
             let ((x, y), dir, next_turn) = cart;
+            positions.remove(&(*x, *y));
             let (nextx, nexty) = match dir {
                 Direction::Down => (*x+1, *y),
                 Direction::Up => (*x-1, *y),
                 Direction::Left => (*x, *y-1),
                 Direction::Right => (*x, *y+1),
             };
-            if let Some(crashed) = new_positions.get(&(nextx, nexty)) {
-                println!("carts len {} Crashed {:?} {:?}", carts.len(), cart_ind, *crashed);
+            if let Entry::Occupied(e) = positions.entry((nextx, nexty)) {
                 to_be_removed.push(cart_ind);
-                to_be_removed.push(*crashed);
+                to_be_removed.push(*e.get());
+                e.remove_entry();
                 continue;
             }
-            new_positions.insert((nextx, nexty), cart_ind);
+            positions.insert((nextx, nexty), cart_ind);
             let mut new_next_turn = next_turn.clone();
             let new_dir = match (rail_map[nextx][nexty], dir) {
                 ('\\', Direction::Right) => Direction::Down,
@@ -117,27 +123,19 @@ pub fn main() {
                 (_, Direction::Right) => Direction::Right,
                 (_, Direction::Down) => Direction::Down,
             };
-            println!("Was at {:?} with dir {:?}, found {}, went at {:?}, with dir{:?}\nAlso previous {:?}, now {:?}", (*x, *y), dir, rail_map[nextx][nexty], (nextx, nexty), new_dir, next_turn, new_next_turn);
             carts[cart_ind] = ((nextx, nexty), new_dir, new_next_turn);
         }
-        if to_be_removed.len() > 1 {
-        println!("carts {:?}, to_be_removed {:?}", carts, to_be_removed);
-        };
         let mut removed_counter = 0;
         to_be_removed.sort();
         to_be_removed.dedup();
-        if to_be_removed.len() > 1 {
-        println!("to_be_removed {:?}", to_be_removed);
-        }
         for crashed in to_be_removed.iter() {
             carts.remove(crashed - removed_counter);
             removed_counter += 1;
         }
-        if to_be_removed.len() > 1 {
-        println!("carts {:?}", carts);
-        }
         if carts.len() == 1 {
             break;
+        } else if carts.len() == 0 {
+            panic!("No carts left");
         }
     }
     println!("Last cart will be @ {:?}", ((carts[0].0).1, (carts[0].0).0));
